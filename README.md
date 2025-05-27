@@ -1,3 +1,4 @@
+<!-- 
 # fes4channels
  
 O resumo do script é sobre a criação de um serviço com Fes4Channels, que envolve a implementação de um dispositivo e a comunicação com um microcontrolador. O vídeo aborda a criação de um serviço básico, a comunicação com Python via MQTT e a adaptação do projeto para o Unit. Além disso, o objetivo é publicar um artigo em um congresso de engenharia biomédica até o final do mês. A equipe discutirá a implementação e as próximas etapas na próxima semana.
@@ -23,6 +24,7 @@ Configuração e funcionamento de serviços em Python para envio de dados via MQ
 Implementação de Serviços e Comunicação de Dados em Dispositivos Perspectiva sobre envio de dados e funções de inicialização de sensores. Processo de envio e recebimento de dados entre dispositivos e Python. Adaptação de serviços para integração com o Unit e Open Vibe.
 
 Implementação de Serviços e Publicação de Artigo em Congresso de Engenharia Biomédica Simplificação do script Python e exclusão de arquivos desnecessários. Adição de informações essenciais ao script para visualização e publicação de artigo. Discussão sobre publicação de artigo em congresso de engenharia biomédica e planejamento de implementação.
+-->
 
 ## Procedimentos para conexão Neurodevices MQTT com ESP e aquisição de dados via _websocket_
 
