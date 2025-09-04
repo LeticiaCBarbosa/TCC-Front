@@ -37,6 +37,7 @@
 
 //nome das funções para usar map no lugar do for :~
 #define RESTART_PARAMETERS                      "{\"op\":7}"
+#define subscribe_PARAMETERS                      "{\"op\":0,\"topic\":\"null\",\"qos\":0}"
 #define WHOAMI_PARAMETERS                       "{\"op\":9}"
 #define BLINKME_PARAMETERS                      "{\"op\":10}"
 #define IMUSENDINIT_PARAMETERS                  "{\"op\":1,\"simulationTime\":\"float\",\"frequence\":\"float\",\"sensorType\":{\"mpu6050\":1,\"GY80\":2}}"

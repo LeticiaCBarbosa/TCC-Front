@@ -65,6 +65,15 @@ String restart(const StaticJsonDocument<sizejson> &doc/*, const uint8_t &operati
 	return answer;
 }
 
+String subscribe(const StaticJsonDocument<sizejson> &doc)  {
+	String answer;
+	String topic = doc["topic"];
+	int qos = doc["qos"];
+
+	mqttClient.subscribe(topic.c_str(), qos);
+	return answer;
+}
+
 String whoAmI(const StaticJsonDocument<sizejson> &doc/*, const uint8_t &operation*/)  {
   String answer;
 
