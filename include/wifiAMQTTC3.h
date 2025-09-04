@@ -74,26 +74,36 @@ String subscribe(const StaticJsonDocument<sizejson> &doc)  {
 	return answer;
 }
 
-String whoAmI(const StaticJsonDocument<sizejson> &doc/*, const uint8_t &operation*/)  {
+String who_am_i(const StaticJsonDocument<sizejson> &doc/*, const uint8_t &operation*/)  {
   String answer;
 
     std::stringstream ss, functionalities;
     ss << "{";
-    ss <<  "\"device\":\"DOIT Esp32 DevKit v1\",";
-    ss << "\"serviceType\":\"" << devFunction.c_str() << "\",";
-    ss << "\"deviceID\":" << ESP.getEfuseMac() << ","; 
-    ss << "\"deviceIP\":\"" << WiFi.localIP().toString().c_str() << "\","; 
-    ss << "\"topics\":[\"" << cmd2dev.str().c_str() << "\",\"" << devans.str().c_str() << "\",\"" << devstream.str().c_str()<< "\",\"" << connectionStatus.str().c_str()<< "\"],"; 
-    ss << "\"implementedFunctionalities\":";
-    // functionalities << globaljson.as<String>().c_str();
-    // ss << functionalities.str() << " }\0";
-	functionalities << " {" ;
+	ss << "\"service_id\":" << ESP.getEfuseMac() << ",";
+    ss <<  "\"service_name\":\"DOIT Esp32 DevKit v1\",";
+	ss << "\"service_description\":" << "\"" << devFunction.c_str() << "\",";
+    ss << "\"service_type\":\"" << "default" << "\","; 
+    ss << "\"topics\":[\"" << cmd2dev.str().c_str() << "\",\"" << devans.str().c_str() << "\",\"" << devstream.str().c_str()<< "\"],"; 
+    ss << "\"commands\":";
+ 
+	functionalities << "[" ;
     for(std::map<String,String>::iterator iter = functionalitiesParameters.begin(); iter != functionalitiesParameters.end(); ++iter)
-        functionalities << "\"" << iter->first.c_str() << "\":" << functionalitiesParameters[iter->first.c_str()].c_str() << ",";
+	{
+		functionalities << "{" ;
+		StaticJsonDocument<sizejson> doc;
+		DeserializationError error = deserializeJson(doc, functionalitiesParameters[iter->first.c_str()].c_str());
+
+		functionalities << "\"" << "op" << "\":" << (int)(doc["op"]) <<",";
+		doc.remove("op");
+		String jsonString;
+		serializeJson(doc, jsonString);
+		functionalities << "\"" << "name" << "\":\"" << iter->first.c_str() << "\",";
+		functionalities << "\"" << "parameters" << "\":" << jsonString.c_str() << "},";
+	}	
     functionalities.seekp(-1, std::ios_base::end);
     functionalities.seekp(-1, std::ios_base::end);
-    functionalities << "}\0";
-	ss << functionalities.str() << " }\0";
+    functionalities << "\0";
+	ss << functionalities.str() << "}]\0";
 
     answer = ss.str().c_str();
     return answer;
@@ -116,14 +126,14 @@ void connectToWifi() {
 
 void createTopics(){
 	std::stringstream shortMacAddress; shortMacAddress << ESP.getEfuseMac();
-	String macAddress = shortMacAddress.str().c_str();
-	shortMacAddress.str(""); shortMacAddress  << macAddress[macAddress.length()-4] << macAddress[macAddress.length()-3]  
-											<< macAddress[macAddress.length()-2] << macAddress[macAddress.length()-1];
-	cmd2dev << "cmd2dev" << shortMacAddress.str().c_str();
-	devans <<"dev" << shortMacAddress.str().c_str() << "ans";
-	devstream <<"dev" << shortMacAddress.str().c_str() << "ss";
-	connectionStatus << "dev" << shortMacAddress.str().c_str() << "status";
-	lastWillTopic = connectionStatus.str().c_str();
+	// String macAddress = shortMacAddress.str().c_str();
+	// shortMacAddress.str(""); shortMacAddress  << macAddress[macAddress.length()-4] << macAddress[macAddress.length()-3]  
+	// 										<< macAddress[macAddress.length()-2] << macAddress[macAddress.length()-1];
+	cmd2dev << "cmd/" << shortMacAddress.str().c_str();
+	devans <<"status/" << shortMacAddress.str().c_str() ;
+	devstream <<"stream/" << shortMacAddress.str().c_str();
+	// connectionStatus << "dev" << shortMacAddress.str().c_str() << "status";
+	// lastWillTopic = connectionStatus.str().c_str();
 }
 
 void connectToMqtt() {
@@ -134,7 +144,7 @@ void connectToMqtt() {
 	mqtt_cfg.transport = MQTT_TRANSPORT_OVER_TCP;
 
 	mqtt_cfg.event_handle = mqtt_event_handler;
-	mqtt_cfg.lwt_topic = lastWillTopic.c_str();
+	// mqtt_cfg.lwt_topic = lastWillTopic.c_str();
 	mqtt_cfg.lwt_msg = "Offline";
 	mqtt_cfg.lwt_msg_len = 7;
 
@@ -195,10 +205,10 @@ void onMqttConnect() {
 	Serial.println(cmd2dev.str().c_str());
 	Serial.println(devans.str().c_str());
 	Serial.println(devstream.str().c_str());
-	Serial.println(connectionStatus.str().c_str());
+	// Serial.println(connectionStatus.str().c_str());
   
-	mqttClient.publish("newdev", 1, false, whoAmI(StaticJsonDocument<sizejson>()).c_str());
-	mqttClient.publish(connectionStatus.str().c_str(), 0, true, "Online");
+	mqttClient.publish("newservice", 1, false, who_am_i(StaticJsonDocument<sizejson>()).c_str());
+	// mqttClient.publish(connectionStatus.str().c_str(), 0, true, "Online");
 	mqttClient.subscribe(cmd2dev.str().c_str(), 0);
 	mqttClient.subscribe("broadcast/get_active_services", 0);
 }
@@ -207,8 +217,9 @@ void onMqttMessage(char* topic, char* payload){
 	String topico = topic;
 	// Serial.println(topico);
 	if(topico.indexOf("broadcast/get_active_services") != -1){
-		mqttClient.publish("newdev", 1, false, whoAmI(StaticJsonDocument<sizejson>()).c_str());
+		mqttClient.publish("newservice", 1, false, who_am_i(StaticJsonDocument<sizejson>()).c_str());
 		// Serial.println("newdev");
+		Serial.println( who_am_i(StaticJsonDocument<sizejson>()).c_str());
 		return;
 	}
 	StaticJsonDocument<sizejson> doc;
