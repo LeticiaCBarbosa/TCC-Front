@@ -227,22 +227,32 @@ void onMqttMessage(char* topic, char* payload){
 	if(topico.indexOf("broadcast/get_active_services") != -1){
 		mqttClient.publish("newservice", 1, false, who_am_i(StaticJsonDocument<sizejson>()).c_str());
 		// Serial.println("newdev");
-		Serial.println( who_am_i(StaticJsonDocument<sizejson>()).c_str());
+		// Serial.println( who_am_i(StaticJsonDocument<sizejson>()).c_str());
 		return;
 	}
 	StaticJsonDocument<sizejson> doc;
 	DeserializationError error = deserializeJson(doc, payload);
 
 	if (error) {
-	Serial.print(F("deserializeJson() failed: "));
-	Serial.println(error.f_str());
-	return;
+		Serial.print(F("deserializeJson() failed: "));
+		Serial.println(error.f_str());
+		return;
 	}
 
 	int op = uint16_t(doc["op"]); 
+	Serial.println(op);
+	Serial.println(doc["parameters"].as<String>().c_str());
+	StaticJsonDocument<sizejson> parameters;
+	error = deserializeJson(parameters, doc["parameters"].as<String>().c_str());
+	if (error) {
+		Serial.print(F("deserializeJson() failed: "));
+		Serial.println(error.f_str());
+		return;
+	}
+
 	if(functions.count(op) != 0){
 		// std::cout << "Entrou aqui1\n";
-		String ans = functions[op](doc);
+		String ans = functions[op](parameters);
 		// std::cout << "Entrou aqui2\n";
 		std::cout << ans;
 		if( ans != "")//{
