@@ -77,33 +77,41 @@ String subscribe(const StaticJsonDocument<sizejson> &doc)  {
 String who_am_i(const StaticJsonDocument<sizejson> &doc/*, const uint8_t &operation*/)  {
   String answer;
 
-    std::stringstream ss, functionalities;
-    ss << "{";
-	ss << "\"service_id\":" << ESP.getEfuseMac() << ",";
-    ss <<  "\"service_name\":\"DOIT Esp32 DevKit v1\",";
-	ss << "\"service_description\":" << "\"" << devFunction.c_str() << "\",";
-    ss << "\"service_type\":\"" << "default" << "\","; 
-    ss << "\"topics\":[\"" << cmd2dev.str().c_str() << "\",\"" << devans.str().c_str() << "\",\"" << devstream.str().c_str()<< "\"],"; 
-    ss << "\"commands\":";
- 
-	functionalities << "[" ;
-    for(std::map<String,String>::iterator iter = functionalitiesParameters.begin(); iter != functionalitiesParameters.end(); ++iter)
-	{
-		functionalities << "{" ;
-		StaticJsonDocument<sizejson> doc;
-		DeserializationError error = deserializeJson(doc, functionalitiesParameters[iter->first.c_str()].c_str());
+	std::stringstream ss, functionalities;
+	ss << "{";
+	ss << "\"service_id\":\"" << ESP.getEfuseMac() << "\",";   // entre aspas para ser sempre string
+	ss << "\"service_name\":\"DOIT Esp32 DevKit v1\",";
+	ss << "\"service_description\":\"" << devFunction.c_str() << "\",";
+	ss << "\"service_type\":\"default\",";
+	ss << "\"topics\":[\"" << cmd2dev.str() << "\",\"" 
+	<< devans.str() << "\",\"" 
+	<< devstream.str() << "\"],";
+	ss << "\"commands\":[";
 
-		functionalities << "\"" << "op" << "\":" << (int)(doc["op"]) <<",";
+	// Monta os comandos
+	for (auto iter = functionalitiesParameters.begin(); iter != functionalitiesParameters.end(); ++iter) {
+		StaticJsonDocument<sizejson> doc;
+		DeserializationError error = deserializeJson(doc, functionalitiesParameters[iter->first].c_str());
+
+		if (error) continue; // ignora erro de parsing
+
+		ss << "{";
+		ss << "\"op\":" << (int)doc["op"] << ",";
 		doc.remove("op");
+
 		String jsonString;
 		serializeJson(doc, jsonString);
-		functionalities << "\"" << "name" << "\":\"" << iter->first.c_str() << "\",";
-		functionalities << "\"" << "parameters" << "\":" << jsonString.c_str() << "},";
-	}	
-    functionalities.seekp(-1, std::ios_base::end);
-    functionalities.seekp(-1, std::ios_base::end);
-    functionalities << "\0";
-	ss << functionalities.str() << "}]\0";
+
+		ss << "\"name\":\"" << iter->first.c_str() << "\",";
+		ss << "\"parameters\":" << jsonString.c_str();
+		ss << "}";
+
+		if (std::next(iter) != functionalitiesParameters.end())
+			ss << ",";
+	}
+
+	ss << "]}";
+
 
     answer = ss.str().c_str();
     return answer;
