@@ -20,7 +20,7 @@
 
 class MqttClient {
 	public:
-		esp_mqtt_client_handle_t mqtt_client;
+		esp_mqtt_client_handle_t mqtt_client ;
 		uint16_t subscribe(const char* topic, uint8_t qos){
 			return esp_mqtt_client_subscribe (mqtt_client, topic, qos);
 		}
@@ -29,7 +29,7 @@ class MqttClient {
 		}
 };
 
-esp_mqtt_client_config_t mqtt_cfg;
+esp_mqtt_client_config_t mqtt_cfg = {};
 MqttClient mqttClient;
 
 // const char* WIFI_SSID = "CAMPUS";
@@ -38,7 +38,7 @@ MqttClient mqttClient;
 // const uint32_t MQTT_PORT = 1883;
 const uint16_t sizejson = 512;
 std::stringstream cmd2dev,devans,devstream,connectionStatus;
-String lastWillTopic;
+String lastWillTopic, stream_callback_topic = "\0";
 
 void WiFiEvent(WiFiEvent_t event);
 
@@ -68,9 +68,10 @@ String restart(const StaticJsonDocument<sizejson> &doc/*, const uint8_t &operati
 String subscribe(const StaticJsonDocument<sizejson> &doc)  {
 	String answer;
 	String topic = doc["topic"];
+	stream_callback_topic = topic.c_str();
 	int qos = doc["qos"];
-
-	mqttClient.subscribe(topic.c_str(), qos);
+	Serial.print("Subscribing to topic: "); Serial.println(topic.c_str());
+	int msg_id = mqttClient.subscribe(topic.c_str(), qos);
 	return answer;
 }
 
@@ -221,21 +222,45 @@ void onMqttConnect() {
 	mqttClient.subscribe("broadcast/get_active_services", 0);
 }
 
+double saida = 0;
 void onMqttMessage(char* topic, char* payload){
 	String topico = topic;
 	// Serial.println(topico);
+	// Serial.println(payload);
+	// Serial.println(stream_callback_topic);
+	// // Serial.println(1);
 	if(topico.indexOf("broadcast/get_active_services") != -1){
 		mqttClient.publish("newservice", 1, false, who_am_i(StaticJsonDocument<sizejson>()).c_str());
 		// Serial.println("newdev");
 		// Serial.println( who_am_i(StaticJsonDocument<sizejson>()).c_str());
 		return;
 	}
+	// Serial.println(2);
 	StaticJsonDocument<sizejson> doc;
 	DeserializationError error = deserializeJson(doc, payload);
 
 	if (error) {
 		Serial.print(F("deserializeJson() failed: "));
 		Serial.println(error.f_str());
+		return;
+	}
+	// Serial.println(3);
+	if(topico.substring(0, 15) == stream_callback_topic.substring(0, 15)){
+			Serial.println("Topic stream: ");
+			double control = doc["control"];
+			Serial.println(control);
+			saida = 0.9 * saida + 0.004 * control;
+			Serial.print("Saida: "); Serial.println(0.9 * saida + 0.004 * control);
+			Serial.print("Saida: "); Serial.println(0.9 * saida + 0.004 * control);
+			Serial.println(saida);
+			std::ostringstream ss;
+			ss << "{\"output\": " << saida << "}";
+
+			std::string topic = devstream.str();
+			std::string payload = ss.str();
+			// Serial.println(saida);
+			mqttClient.publish(topic.c_str(), 0, false, payload.c_str());
+
 		return;
 	}
 
@@ -251,9 +276,7 @@ void onMqttMessage(char* topic, char* payload){
 	}
 
 	if(functions.count(op) != 0){
-		// std::cout << "Entrou aqui1\n";
 		String ans = functions[op](parameters);
-		// std::cout << "Entrou aqui2\n";
 		std::cout << ans;
 		if( ans != "")//{
 			mqttClient.publish(devans.str().c_str(), 0, true, ans.c_str());
