@@ -17,7 +17,7 @@ void setup() {
   captivPortal = wifiSTAMQTTInit();
   // // startSerialService(); // Não é compactível com C3
 
-  // addFunctions("openLoopFesUpdate",OPENLOOPFESUPDATE_PARAMETERS,openLoopFesUpdate,2);
+  addFunctions("openLoopFesUpdate",OPENLOOPFESUPDATE_PARAMETERS,openLoopFesUpdate,2);
   // // addFunctions("restart",RESTART_PARAMETERS,restart,7);
   // addFunctions("subscribe",subscribe_PARAMETERS,subscribe,0);
   // addFunctions("who_am_i",WHOAMI_PARAMETERS,who_am_i,9);
@@ -33,8 +33,8 @@ void setup() {
 
   addFunctions("who_am_i",WHOAMI_PARAMETERS,who_am_i,0);
   addFunctions("subscribe",subscribe_PARAMETERS,subscribe,1);
-  addFunctions("imuSendInit",IMUSENDINIT_PARAMETERS,imuSendInit,2);  //sensors.init();
-  addFunctions("imuSendStop",IMUSENDSTOP_PARAMETERS,imuSendStop,3);
+  // addFunctions("imuSendInit",IMUSENDINIT_PARAMETERS,imuSendInit,2);  //sensors.init();
+  // addFunctions("imuSendStop",IMUSENDSTOP_PARAMETERS,imuSendStop,3);
 }
 
 void loop() {

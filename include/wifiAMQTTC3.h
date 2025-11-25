@@ -250,8 +250,8 @@ void onMqttMessage(char* topic, char* payload){
 			double control = doc["control"];
 			Serial.println(control);
 			saida = 0.9 * saida + 0.004 * control;
-			Serial.print("Saida: "); Serial.println(0.9 * saida + 0.004 * control);
-			Serial.print("Saida: "); Serial.println(0.9 * saida + 0.004 * control);
+			// Serial.print("Saida: "); Serial.println(0.9 * saida + 0.004 * control);
+			// Serial.print("Saida: "); Serial.println(0.9 * saida + 0.004 * control);
 			Serial.println(saida);
 			std::ostringstream ss;
 			ss << "{\"output\": " << saida << "}";
@@ -265,18 +265,8 @@ void onMqttMessage(char* topic, char* payload){
 	}
 
 	int op = uint16_t(doc["op"]); 
-	Serial.println(op);
-	Serial.println(doc["parameters"].as<String>().c_str());
-	StaticJsonDocument<sizejson> parameters;
-	error = deserializeJson(parameters, doc["parameters"].as<String>().c_str());
-	if (error) {
-		Serial.print(F("deserializeJson() failed: "));
-		Serial.println(error.f_str());
-		return;
-	}
-
 	if(functions.count(op) != 0){
-		String ans = functions[op](parameters);
+		String ans = functions[op](doc);
 		std::cout << ans;
 		if( ans != "")//{
 			mqttClient.publish(devans.str().c_str(), 0, true, ans.c_str());
