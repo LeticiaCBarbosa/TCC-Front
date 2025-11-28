@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+/1gl5bxDXPMkf-EvpY76XP51_B7EcH9uFM/edit<!DOCTYPE html>
 <html>
 
 <head>
@@ -44,14 +44,14 @@
         <div class="sub_cat_box" id="cat5">
             <ul>
                     <p><label>Server address</label>
-                        <input id="mqttHost" value="10.1.1.190">
+                        <input id="mqttHost" value="127.0.0.1">
                     </p>
 
                     <p><label>Port</label>
                         <input id="mqttPort" value="1887">
                     </p>
                     <p><label>Device Name</label>
-                    <input id="deviceName" value="6200">
+                    <input id="deviceName" value="110017869965628">
                     </p>
                     <p><label>Largura do Pulso</label>
                         <input id="ton" value="200">
@@ -107,7 +107,7 @@
         let reconnectTimeout = 2000;
         let deviceName = ''
         let hostName;
-        let port = 1887;
+        let port = 9001;
         let subscribeOptions = {
             qos: 0,  // QoS
             invocationContext: {foo: true},  // Passed to success / failure callback
@@ -135,12 +135,12 @@
             // Once a connection has been made, make a subscription and send a message.
             alert("MQTT Connected");
             deviceName = document.getElementById("deviceName").value;
-            client.subscribe("devices");
-            client.subscribe("dev"+deviceName+"ss",subscribeOptions);
-            client.subscribe("dev"+deviceName+"ans",subscribeOptions);
-            client.subscribe("cmd2dev"+deviceName,subscribeOptions);
-            message = new Paho.MQTT.Message('{"op": 9}');
-            message.destinationName = "cmd2dev"+deviceName;
+            client.subscribe("newdev");
+            client.subscribe("stream/"+deviceName,subscribeOptions);
+            client.subscribe("status/"+deviceName,subscribeOptions);
+            client.subscribe("cmd/"+deviceName,subscribeOptions);
+            message = new Paho.MQTT.Message('{"op": 0}');
+            message.destinationName = "cmd/"+deviceName;
             client.send(message);
         }
 
@@ -154,16 +154,16 @@
         // called when a message arrives
         function onMessageArrived(message) {
             console.log("onMessageArrived:"+message.payloadString);
-            if(message.destinationName == "cmd2dev"+deviceName){
+            if(message.destinationName == "cmd/"+deviceName){
                 let log = document.getElementById("commandlog");
                 log.value += "\n"+message.payloadString
-            } else if(message.destinationName == "dev"+deviceName+"ss"){
+            } else if(message.destinationName == "stream/"+deviceName){
                 let log = document.getElementById("streaminglog");
                 log.value += "\n"+message.payloadString
-            }else if(message.destinationName == "dev"+deviceName+"ans"){
+            }else if(message.destinationName == "status/"+deviceName){
                 let log = document.getElementById("responselog");
                 log.value += "\n"+message.payloadString
-            }else if(message.destinationName == "devices"){
+            }else if(message.destinationName == "newdev"){
                 let log = document.getElementById("deviceLog");
                 log.value += "\n"+message.payloadString
             }
@@ -186,8 +186,8 @@
             ch2 = document.getElementById("ch2").value;
             ch3 = document.getElementById("ch3").value;
             ch4 = document.getElementById("ch4").value;
-            message = new Paho.MQTT.Message('{"op":2,"m":"'+ch1+','+ch2+','+ch3+','+ch4+'","t":"'+ton+'","p":"'+period+'"}');
-            message.destinationName = "cmd2dev"+deviceName;
+            message = new Paho.MQTT.Message('{"op":2,parameters:{"m":"'+ch1+','+ch2+','+ch3+','+ch4+'","t":"'+ton+'","p":"'+period+'"}}');
+            message.destinationName = "cmd/"+deviceName;
             client.send(message);
         } 
     </script>

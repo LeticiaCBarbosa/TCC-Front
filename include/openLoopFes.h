@@ -4,15 +4,19 @@
 #include "SistemasdeControle/headers/primitiveLibs/LinAlg/matrix.h"
 #include "SistemasdeControle/embeddedTools/signalAnalysis/systemLoop.h"
 #include "sendIMUData.h"
+// #include "microstim.h"
 
 volatile bool openLoop_flag = false, sensor_flag = false;
 
 // -----------------------ESP32devkit-------------------------------------------
 #ifdef ESP32DEV
-uint8_t modPin[8]    = {27,19,12,18,23,14,26,25},//ca andré
-        levelPin[4]  = {13,4,2,33};
-// uint8_t modPin[8]    = {4,12,0,0,0,0,0,0},//ca andré
-//         levelPin[4]  = {2,0,0,0};
+#ifndef microstim_h
+  uint8_t modPin[8]    = {27,19,12,18,23,14,26,25},//ca andré
+          levelPin[4]  = {13,4,2,33};
+#else
+uint8_t modPin[8]    = {4,12,0,0,0,0,0,0},//ca andré
+        levelPin[4]  = {2,0,0,0};
+#endif
 Devices::fes4channels dispositivo(levelPin, modPin, 4, 18000,200,20000,true);
 
 // -----------------------ESP32C3-------------------------------------------
@@ -29,6 +33,10 @@ Devices::fes4channels dispositivo(levelPin, modPin, 1, 18000,200,20000,true);
 #endif
 
 void openLoopFesInit(uint32_t ton, uint32_t period){
+    #ifdef microstim_h
+      init_micro_stim();
+    #endif
+
     openLoop_flag = true;
     if(dispositivo.stopLoopFlag){
       dispositivo.stopLoopFlag = false;
@@ -72,9 +80,12 @@ String openLoopFesConfig(const StaticJsonDocument<sizejson> &doc)  {
 String openLoopFesUpdate(const StaticJsonDocument<sizejson> &doc/*, const uint8_t &operation*/)  {
 
   String answer;
-
     const char *msg = doc["m"];
     LinAlg::Matrix<double> code = msg;
+
+    #ifdef microstim_h
+     set_resistance(code(0,0));
+    #endif
 
     for(uint8_t i = 0; i < code.getNumberOfColumns(); ++i)
       dispositivo.fes[i].setPowerLevel(code(0,i));  

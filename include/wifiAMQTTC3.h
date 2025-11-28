@@ -209,16 +209,23 @@ static esp_err_t mqtt_event_handler (esp_mqtt_event_handle_t event) {
 
 void onMqttConnect() {
 	// blinkTime = 5; blinkMe(StaticJsonDocument<sizejson>());
-
+	std::stringstream shortMacAddress, cmd2devMac; shortMacAddress << ESP.getEfuseMac();
+    String macAddress = shortMacAddress.str().c_str();
+    shortMacAddress.str(""); shortMacAddress  << macAddress[macAddress.length()-4] << macAddress[macAddress.length()-3]  
+                                            << macAddress[macAddress.length()-2] << macAddress[macAddress.length()-1];
+    cmd2devMac << "cmd2dev" << shortMacAddress.str().c_str();
 	Serial.println("MQTT Connected");
 	Serial.println(cmd2dev.str().c_str());
 	Serial.println(devans.str().c_str());
 	Serial.println(devstream.str().c_str());
+
+	Serial.println(cmd2devMac.str().c_str());
 	// Serial.println(connectionStatus.str().c_str());
   
 	mqttClient.publish("newservice", 1, false, who_am_i(StaticJsonDocument<sizejson>()).c_str());
 	// mqttClient.publish(connectionStatus.str().c_str(), 0, true, "Online");
 	mqttClient.subscribe(cmd2dev.str().c_str(), 0);
+	mqttClient.subscribe(cmd2devMac.str().c_str(), 0);
 	mqttClient.subscribe("broadcast/get_active_services", 0);
 }
 
@@ -265,11 +272,34 @@ void onMqttMessage(char* topic, char* payload){
 	}
 
 	int op = uint16_t(doc["op"]); 
-	if(functions.count(op) != 0){
-		String ans = functions[op](doc);
-		std::cout << ans;
-		if( ans != "")//{
-			mqttClient.publish(devans.str().c_str(), 0, true, ans.c_str());
+	Serial.println(op);
+	Serial.println(doc["parameters"].as<String>().c_str());
+	
+	if (doc.containsKey("parameters")) {
+		
+		StaticJsonDocument<sizejson> parameters;
+		error = deserializeJson(parameters, doc["parameters"].as<String>().c_str());
+		if (error) {
+			Serial.print(F("deserializeJson() failed: "));
+			Serial.println(error.f_str());
+			return;
+		}
+		if(functions.count(op) != 0){
+			String ans = functions[op](parameters);
+			std::cout << ans;
+			if( ans != "")//{
+				mqttClient.publish(devans.str().c_str(), 0, true, ans.c_str());
+		}
+	}else{
+		Serial.println(op);
+		Serial.println(doc.as<String>().c_str());
+		if(functions.count(op) != 0){
+			Serial.println(doc.as<String>().c_str());
+			String ans = functions[op](doc);
+			std::cout << ans;
+			if( ans != "")//{
+				mqttClient.publish(devans.str().c_str(), 0, true, ans.c_str());
+		}
 	}
 }
 
