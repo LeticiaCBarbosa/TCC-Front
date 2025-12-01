@@ -1,51 +1,155 @@
+# Neurodevice – Estrutura, Comunicação e Procedimentos
 
-Neurodevice foi criado com o objetivo de dar suporte a comunicação entre microcontroladores ESP e outras aplicações em geral (atualmente representado por [SynapSys](https://github.com/isd-iin-els/SynapSys) ). A estrutura de comunicação segue os princípios de SynapSys em que todo dispositivo gravado com neurodevices se torna um bloco:
+O **Neurodevice** foi criado para dar suporte à comunicação entre microcontroladores **ESP** e aplicações externas (atualmente representadas por [SynapSys](https://github.com/isd-iin-els/SynapSys)).
+Ele segue o mesmo princípio de blocos do SynapSys: **todo dispositivo gravado com Neurodevice se torna um bloco**.
 
-  - **Blocos físicos**: compreendem sensores e atuadores conectados ao sistema, com capacidade limitada de processamento, mas essenciais para a aquisição de dados e interação com o ambiente experimental.
+---
 
-Assim como todos os blocos assumem uma estrutura de mensagens baseadas no MQTT. Essa estrutura força que para se comunicar com os ESPs gravados os tópicos MQTT devem ser como os definidos a seguir: os atributos de blocos que são
+## 1. Estrutura dos Blocos
 
-  - **Tópicos MQTT**: No modelo *publish/subscribe*, os tópicos são os canais responsáveis pela organização e roteamento das mensagens. Cada bloco atua como *subscriber* em determinados tópicos e como *publisher* em outros. As principais convenções são:
-  - `cmd/<service_id>`: tópico destinado ao recebimento de operações de comando que controlam o comportamento do bloco.
-  - `status/<service_id>`: utilizado para publicação de mensagens com saída estruturada, geralmente em formato JSON, contendo informações detalhadas do processamento.
-  - `stream/<service_id>`: destinado à publicação de dados literais ou contínuos, como inteiros, flutuantes ou strings, oriundos da função de aplicação.
-  - `broadcast/get_active_services`: ao receber uma mensagem nesse tópico, todos os blocos conectados ao *broker* MQTT devem responder com suas identificações por meio do comando `who_am_i`, enviando uma mensagem para o tópico `newservice`.
-  - `newservice`: tópico utilizado para receber as identificações dos blocos ativos no sistema.
+### **Blocos físicos**
 
-Além da estrutura que obriga as mensagens e comunicação entre blocos o Neurodevice também determina um padrão de mensagens para comunicação como um microssersserviço sobre o MQTT. Esse padrão começa definindo funções básicas que podem ser acessadas via MQTT, Ex.:{"op":0}, json para chamar a função de who_am_i, no tópico `cmd/<service_id>`. É importante destacar que neste caso o fluxo da mensagem é de uma aplicação externa para o microcontrolador que processará como uma função e devolverá em status caso haja retorno. As operações já existentes como microsserviço são:
+São sensores e atuadores conectados ao sistema, com processamento limitado, mas essenciais para aquisição de dados e interação com o ambiente experimental.
 
-- **Operações de Comando**: Correspondem a instruções diretas enviadas a um bloco via o tópico `cmd/<service_id>`. Por padrão, cada bloco já é configurado com duas operações fundamentais:
-  - `op 0 - who_am_i`: solicita que o bloco envie sua identificação detalhada para o tópico `newservice`.
-  - `op 1 - subscribe`: instrui o bloco a se inscrever em um tópico MQTT específico.
+---
 
-  Além dessas, é possível estender o conjunto de operações de comando, permitindo que o desenvolvedor acrescente instruções adicionais conforme as necessidades do experimento. Isso deve acontecer sem sobrepor as operações que já existem. Além disso, é sugerido criar um arquivo com base no arquivo de [template](https://github.com/isd-iin-els/Neurodevices/blob/main/src/templateServico.h). Este arquivo tem a estrutura geral de como implementar um microsserviço sendo que ele guia os nomes que devem ser removidos, alterados e sobrescritos. Uma vez finalizado o microsserviço o arquivo deve ser inserido no arquivo de mais e adicionada a linha de código que terá a função a ser chamada.
+## 2. Estrutura de Mensagens (MQTT)
 
+A comunicação no Neurodevice segue um padrão fixo de tópicos MQTT. Todo ESP gravado deve obedecer às convenções abaixo:
 
-Agora que o conteúdo sobre o funcionamento do sistema base (para permitir a programação), foi detalhado, ainda há um conjunto de recursos que são disponibilizados para além dos microsserviços. Uma vez construído o microserviço e gravado o microcontrolador, segue-se a partir do ítem 4.
+### **Tópicos MQTT**
 
-## Procedimentos para conexão Neurodevices MQTT com ESP e aquisição de dados via _websocket_
+* `cmd/<service_id>`
+  Recebe operações de comando enviadas para o bloco.
 
-1. Clonar repositório [Neurodevices](https://github.com/isd-iin-els/Neurodevices/tree/main)
-2. Abrir projeto no VSCode
-3. Conectar ESP à porta USB
-4. Caso o projeto ainda não esteja gravado na memória _flash_ do ESP
-   - Fazer upload do projeto Neurodevices para o ESP a partir do VSCode
-   - Conectar (preferivelmente celular) à rede Wi-Fi devXXXX (XXXX é o número do dispositivo ESP. Ex.: dev3952)
-   - Acessar o endereço 8.8.8.8 no _browser_ (chrome, firefox, etc...)
-   - Preencher seguintes campos do formulário para configuração do ESP
-     - WiFi SSID: CAMPUS
-     - WiFi _Password_: IINELS_educacional
-     - MQTT _Server Host Name_: endereço IP da máquina onde está instalado o servidor _broker_ MQTT (verificar IP conectado à rede Wi-Fi CAMPUS)
-     - MQTT _Server port_: número da porta configurada para o _broker_ MQTT
-       - Nesse caso, deve-se configurar a porta 1883, padrão do MQTT
-     - _Submit_
-   - Estando a máquina do _broker_ conectada à rede CAMPUS, abrir interface `directStimulation.html` no _browser_ e preencher as seguintes informações para coleta de dados com a palmilha:
-     - _Server address_: endereço IP da máquina onde está instalado o servidor _broker_ MQTT (verificar IP conectado à rede Wi-Fi CAMPUS)
-     - _Port_: número da porta configurada para o _broker_ MQTT
-       - Caso o arquivo de configuração do _broker_ MQTT esteja configurado para conexão _websocket_ na porta 1887, configurar essa porta.
-     - Tópico da palmilha: número do dispositivo ESP (Ex.: 3952)
-     - Tempo de experimento: em segundos
-   - Connect to MQTT
-   - Começar experimento
+* `status/<service_id>`
+  Publica saídas estruturadas (geralmente em JSON), contendo informações de processamento.
 
-Ou seja, além da arquitetura de microsserviços, o Neurodevices oferece um portal de configuração e uma função de teste na forma de uma pequena página web. Note que o broker MQTT deve ser instalado e as portas 1883 e ws 1887 habilitadas. Obs: É necessário desabilitar o firewall em aplicações windows.
+* `stream/<service_id>`
+  Publica dados contínuos (números, strings, leituras sensoriais etc.).
+
+* `broadcast/get_active_services`
+  Ao receber uma mensagem neste tópico, todos os blocos devem responder com suas identificações via comando `who_am_i`, publicando em `newservice`.
+
+* `newservice`
+  Recebe as informações de identificação dos blocos ativos.
+
+---
+
+## 3. Microsserviços via MQTT
+
+Além da definição dos tópicos, o Neurodevice implementa um **padrão de microsserviço baseado em JSON**.
+Exemplo de chamada:
+
+```json
+{"op": 0}
+```
+
+Enviado ao tópico `cmd/<service_id>` para executar a função `who_am_i`.
+
+### **Operações padrão já implementadas**
+
+* **op 0 — `who_am_i`**
+  Envia a identificação completa do bloco para o tópico `newservice`.
+
+* **op 1 — `subscribe`**
+  Instrui o bloco a se inscrever em um tópico específico.
+
+### **Expansão de operações**
+
+O desenvolvedor pode **criar novas operações** seguindo estas regras:
+
+* Não sobrescrever operações existentes.
+* Criar um arquivo baseado no *template* oficial:
+  [https://github.com/isd-iin-els/Neurodevices/blob/main/src/templateServico.h](https://github.com/isd-iin-els/Neurodevices/blob/main/src/templateServico.h)
+* O template orienta:
+
+  * o que renomear
+  * o que remover
+  * o que sobrescrever
+* Após finalizar o microsserviço:
+
+  * incluir o arquivo no projeto
+  * adicionar a linha para registrar a nova função
+
+---
+
+## 4. Recursos Adicionais do Neurodevice
+
+Além da arquitetura de microsserviços, o sistema oferece:
+
+* Portal Web de configuração do ESP
+* Página web de teste para aquisição via *websocket*
+* Integração automática com broker MQTT
+
+---
+
+# 5. Procedimentos de Conexão e Aquisição de Dados
+
+## **Passo a passo para usar ESP + MQTT + Websocket**
+
+### **1. Clonar o repositório**
+
+```
+https://github.com/isd-iin-els/Neurodevices/tree/main
+```
+
+### **2. Abrir projeto no VSCode**
+
+### **3. Conectar o ESP via USB**
+
+---
+
+## **4. Gravação inicial do ESP (se ainda não estiver programado)**
+
+1. Fazer upload do projeto Neurodevices pelo VSCode.
+2. Conectar um celular à rede Wi-Fi do ESP:
+
+   * `devXXXX` (ex.: `dev3952`)
+3. Abrir no navegador:
+
+   ```
+   8.8.8.8
+   ```
+4. Preencher o formulário:
+
+| Campo                 | Valor                      |
+| --------------------- | -------------------------- |
+| Wi-Fi SSID            | CAMPUS                     |
+| Wi-Fi Password        | IINELS_educacional         |
+| MQTT Server Host Name | IP da máquina com o broker |
+| MQTT Server Port      | 1883                       |
+
+5. Clicar em **Submit**.
+
+---
+
+## **5. Coleta de dados via `directStimulation.html`**
+
+Com a máquina do broker conectada à rede:
+
+1. Abrir `directStimulation.html` no navegador.
+2. Preencher:
+
+| Campo                | Valor                                 |
+| -------------------- | ------------------------------------- |
+| Server address       | IP da máquina do broker               |
+| Port                 | Porta websocket do broker (ex.: 1887) |
+| Tópico da palmilha   | Número do ESP (ex.: 3952)             |
+| Tempo de experimento | Em segundos                           |
+
+3. Clicar em **Connect to MQTT**
+4. Iniciar experimento
+
+---
+
+# 6. Observações Importantes
+
+* O broker MQTT deve estar instalado e funcionando.
+* As portas necessárias:
+
+  * **1883** para MQTT
+  * **1887** para websocket (se configurado)
+* Em Windows, **desabilitar o firewall** para permitir a comunicação.
+
+---
