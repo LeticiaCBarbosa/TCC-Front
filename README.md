@@ -61,7 +61,7 @@ O desenvolvedor pode **criar novas operações** seguindo estas regras:
 
 * Não sobrescrever operações existentes.
 * Criar um arquivo baseado no *template* oficial:
-  [https://github.com/isd-iin-els/Neurodevices/blob/main/src/templateServico.h](https://github.com/isd-iin-els/Neurodevices/blob/main/src/templateServico.h)
+  [templateServico](https://github.com/isd-iin-els/Neurodevices/blob/main/src/templateServico.h)
 * O template orienta:
 
   * o que renomear
