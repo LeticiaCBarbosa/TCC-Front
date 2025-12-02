@@ -40,9 +40,11 @@ Após enviar o comando, **um programa externo deve se inscrever no tópico de st
 
 ```json
 {
-  "op": 2,
-  "simulationTime": 300,
-  "frequence": 10
+  "op": 2,"parameters":
+    {
+    "simulationTime": 300,
+    "frequence": 10
+    }
 }
 ```
 
