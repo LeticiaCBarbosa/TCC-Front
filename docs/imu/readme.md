@@ -22,12 +22,9 @@ O funcionamento segue a mesma lógica de outros sensores e lembra o padrão **se
 
 Para ativar o sensor inercial e receber os dados via MQTT, o comando deve conter os seguintes parâmetros:
 
-* **op:** `2`
-  Operação indicando que o sensor inercial será inicializado.
-* **simulationTime:** *inteiro*
-  Tempo (em segundos) durante o qual o streaming enviará dados.
-* **frequence:** *inteiro*
-  Frequência em Hz dos dados enviados (e da amostragem do sensor).
+* **op:** `2`. Operação indicando que o sensor inercial será inicializado.
+* **simulationTime:** *Float*. Tempo (em segundos) durante o qual o streaming enviará dados.
+* **frequence:** *Float*. Frequência em Hz dos dados enviados (e da amostragem do sensor).
 
 Após enviar o comando, **um programa externo deve se inscrever no tópico de streaming** para receber as mensagens.
 
