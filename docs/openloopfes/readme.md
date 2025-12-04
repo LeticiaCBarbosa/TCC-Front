@@ -1,35 +1,100 @@
+
 # **Uso de Eletroestimulador – (`openLoopFes.h`)**
 
-Antes de iniciar a leitura deste documento, recomendo entender o conceito de **Neurodevices** neste link:
-👉 [https://github.com/isd-iin-els/Neurodevices](https://github.com/isd-iin-els/Neurodevices) .
+Antes de iniciar a leitura deste documento, recomenda-se revisar a definição dos **comandos para o eletroestimulador**, utilizando o conceito de **Neurodevice** no link abaixo:
 
-Esse material explica como **tópicos e mensagens** funcionam nos serviços operados via **MQTT**, fundamental para utilizar os comandos de eletroestimulação corretamente.
+👉 **[https://github.com/isd-iin-els/Neurodevices/tree/main/docs/openloopfes](https://github.com/isd-iin-els/Neurodevices/tree/main/docs/openloopfes)**
 
-Também, é importante notar que no arquivo src/main.cpp, o addfunction correlato a openloopfes deve estar descomentado, tendo comentado com o de IMU (que conflita com ele).
+Esse material explica como o **hardware** funciona e como enviar comandos corretamente para o eletroestimulador — conhecimento essencial antes de usar esta interface.
 
+---
 
-## 2. Update Loop
+## **2. Interface**
 
-De forma objetiva a principal função necessária aqui é a openLoopFesUpdate. Isso acontece porque no modo de estimulação elétrica, o estimulador está sempre ligado variando de 0 a 100% de PWM. Por isso, quando a função de update é chamada, ela também inicializa, caso não tenha sido inicializada. É importante notar que neste projeto apenas ondas retangulares monofásicas e bifásicas foram consideradas.
+A interface apresentada na página web
+👉 [https://github.com/isd-iin-els/Neurodevices/blob/main/include/directStimulation_new.html](https://github.com/isd-iin-els/Neurodevices/blob/main/include/directStimulation_new.html)
+permite interagir diretamente com o eletroestimulador. Ela é composta pelos seguintes elementos:
 
-## **Padrão de Comando + Exemplo**
+---
 
-Para ativar a estimulação elétrica e atualizar os valores de amplitude, o comando deve conter os seguintes parâmetros:
+### **🔌 Server Address**
 
-* **op:** `2`. Operação indicando que o estimulador elétrico será inicializado e/ou terá seu valor atualizado (ver no arquivo ./src/main.cpp).
-* **m:** *string com números (floats) separados por vírgula*. No máximo terão 4 números. Isso acontece porque a função foi feita para um estimulador de até 8 canais.
-* **t:** *inteiro*.  Largura do pulso de eletroestimulação.
-* **p:** *inteiro*.  Período do pulso elétrico.
+Campo destinado ao endereço do **servidor MQTT** (broker).
+Atenção:
 
-### Exemplo
+* Certifique-se de que o firewall não está bloqueando conexões.
+* Verifique se o arquivo de configuração do broker libera:
 
-Vamos supor que o objetivo seja criar uma aplicação que seja capaz de interagir com o eletroestimulador. Para isso, utilizando os padrões apresentados acima o seguinte json foi enviado para o tópico de comando (`cmd/<service_id>`) do estimulador elétrico:
+  * Porta **1883 (TCP)** — microcontroladores
+  * Porta **9001 (WebSocket)** — interface web
+* Insira aqui o **IP ou domínio** do broker.
 
-{"op":2,parameters:{"m":"4,0,0,0","t":"200","p":"20000"}}
+---
 
-Isso significa que o eletroestimulador reeceberá um json indicando que uma onda de 200s de largura de pulso e 50Hz (10⁶/20000) será formada a partir daquele momento. Além disso, os valores de m indicam que o canal 1 será estimulado em 4% do seu PWM, isto é em 4% da aplitude de tensão.
+### **🔢 Port**
 
-OBS.:
-    1 - Não é possível, depois de iniciar a eletroestimulação, realizar uma atualização de largura de pulso e frequencia. Para tornar issoo possíve, o usuário deve reiniciar o microcontrolador.
-    2 - A operação 2 só é válida se no arquivo ./src/main.cpp essa operação estiver na seguinte forma: addFunctions("openLoopFesUpdate",OPENLOOPFESUPDATE_PARAMETERS,openLoopFesUpdate,2);
-    3 - Para testes rápidos, é possível utilizar a página [web](https://github.com/isd-iin-els/Neurodevices/blob/main/include/directStimulation_new.html)  
+A porta pode ser configurada no broker.
+Recomendação padrão:
+
+* **9001** → interface web (WebSocket)
+* **1883** → dispositivos físicos (ESP/MCUs)
+
+Isso permite o correto *handshake* entre microcontrolador e página web.
+
+---
+
+### **🆔 Device Name**
+
+Identificação única do dispositivo.
+Para obtê-la:
+
+1. Conecte o microcontrolador via **USB**.
+2. Abra um terminal serial (115200 baud).
+3. Reinicie o dispositivo.
+4. O identificador (baseado no MAC) será exibido no log serial.
+
+---
+
+### **📏 Largura do Pulso (Pulse Width)**
+
+Define e prepara o valor da largura de pulso que será enviado ao dispositivo.
+
+---
+
+### **⏱️ Período (Period)**
+
+Define e prepara o valor do período de estimulação a ser enviado.
+
+---
+
+### **⚡ Canais de Estimulação**
+
+Conjunto de *slide buttons* que define quais canais serão ativados.
+
+* Cada slide representa um canal.
+* Ao soltar o slide, **todos os comandos são enviados automaticamente**.
+
+---
+
+### **🔗 Connect Button**
+
+A comunicação MQTT só inicia após clicar em **Connect**.
+Use este botão depois de configurar:
+
+* servidor
+* porta
+* dispositivo
+* parâmetros de estimulação
+
+---
+
+### **📜 Logs**
+
+A interface inclui caixas de log para facilitar o monitoramento:
+
+* **Comandos enviados**
+* **Streaming recebido**
+* **Status do dispositivo**
+
+Úteis para depuração e verificação da comunicação.
+
