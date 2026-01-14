@@ -1,113 +1,322 @@
-/1gl5bxDXPMkf-EvpY76XP51_B7EcH9uFM/edit<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
-
 <head>
-  <title>Amplitude Configuration</title>
-  <meta charset="UTF-8">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
-  <style>
-    html,
-
-    body {
-      /* background:blue; */
-      text-align: center;
-    }
-    form {
-      margin-top: 200px;
-      margin-left: 20%;
-      margin-right: 20%;
-    }
-    label {
-      color: black;
-      font-weight: bold;
-      float:left;
-    }
-    input {
-      width: 100%;
-      height: 30px;
-      margin: 5px;
-    }
-    input[type=submit] {
-      color: white;
-      background-color: blue;
-      border: 2px solid blue;
-    }
-    p {
-      color:blue;
-    }
-  </style>
+    <title>NeuroStim Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MQTT Client Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div id="hide_show">
-
-        <div class="sub_cat_box" id="cat5">
-            <ul>
-                    <p><label>Server address</label>
-                        <input id="mqttHost" value="127.0.0.1">
-                    </p>
-
-                    <p><label>Port</label>
-                        <input id="mqttPort" value="1887">
-                    </p>
-                    <p><label>Device Name</label>
-                    <input id="deviceName" value="110017869965628">
-                    </p>
-                    <p><label>Largura do Pulso</label>
-                        <input id="ton" value="200">
-                        </p>
-                    <p><label>Período</label>
-                        <input id="period" value="20000">
-                        </p>
-             
-             
-                    <button onclick="connectMQTT()">Connect to MQTT</button>
+    <!-- Main Container -->
+    <div class="container-fluid px-4">
+        
+        <!-- Header -->
+        <header class="d-flex justify-content-between align-items-center py-3 mb-4 border-bottom">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-brain fa-2x text-primary me-3"></i>
+                <h1 class="h3 mb-0">NeuroStim Controller</h1>
+            </div>
+            <div class="connection-status">
+                <span id="statusIndicator" class="badge bg-danger">
+                    <i class="fas fa-circle me-1"></i> Disconnected
+                </span>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <div class="row">
+            
+            <!-- Left Column: Controls -->
+            <div class="col-lg-4">
                 
-             
-                    <p><label>Channel 1</label>
-                    <input id="ch1" value="0" type="range"
-                        class="form-control-range" name="canal1">
-                    </p>
-               
-                    <p><label>Channel 2</label>
-                    <input id="ch2" value="0" type="range"
-                        class="form-control-range" name="canal2">
-                    </p>
-               
-                    <p><label>Channel 3</label>
-                    <input id="ch3" value="0" type="range"
-                        class="form-control-range" name="canal3">
-                    </p>
-               
-                    <p><label>Channel 4</label>
-                    <input id="ch4" value="0" type="range"
-                        class="form-control-range" name="canal4">
-                    </p>
+                <!-- Connection Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-plug me-2"></i>MQTT Connection
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="mqttHost" class="form-label">
+                                <i class="fas fa-server me-1"></i>Server Address
+                            </label>
+                            <input type="text" class="form-control" id="mqttHost" value="127.0.0.1">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="mqttPort" class="form-label">
+                                <i class="fas fa-network-wired me-1"></i>Port
+                            </label>
+                            <input type="number" class="form-control" id="mqttPort" value="1887">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="deviceName" class="form-label">
+                                <i class="fas fa-microchip me-1"></i>Device Name
+                            </label>
+                            <input type="text" class="form-control" id="deviceName" value="110017869965628">
+                        </div>
+                        
+                        <button id="connectBtn" class="btn btn-primary w-100" onclick="connectMQTT()">
+                            <i class="fas fa-link me-2"></i>Connect to MQTT
+                        </button>
 
-                    <p><label>Log de Comandos:</label></p>
-                    <textarea id="commandlog" rows="15" cols="100"></textarea>
-
-                    <p><label>Log de Respostas:</label></p>
-                    <textarea id="responselog" rows="15" cols="100"></textarea>
-
-                    <p><label>Log de Streaming:</label></p>
-                    <textarea id="streaminglog" rows="15" cols="100"></textarea>
-
-                    <p><label>Log de Dispositivos:</label></p>
-                    <textarea id="deviceLog" rows="15" cols="100"></textarea>
-
-            </ul>
+                        <div id="liveAlertPlaceholder"></div>
+                    </div>
+                </div>
+                
+                <!-- Pulse Configuration Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-wave-square me-2"></i>Pulse Configuration
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="ton" class="form-label">
+                                Pulse Width (µs) <span class="badge bg-light text-dark" id="tonValue">200</span>
+                            </label>
+                            <input type="range" class="form-range" id="ton" min="50" max="1000" value="200" 
+                                   oninput="document.getElementById('tonValue').textContent = this.value">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="period" class="form-label">
+                                Period (ms) <span class="badge bg-light text-dark" id="periodValue">20000</span>
+                            </label>
+                            <input type="range" class="form-range" id="period" min="1000" max="60000" value="20000" 
+                                   oninput="document.getElementById('periodValue').textContent = this.value">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Quick Stats
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6 mb-3">
+                                <div class="stat-value" id="totalMessages">0</div>
+                                <div class="stat-label">Total Messages</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="stat-value" id="activeChannels">0/4</div>
+                                <div class="stat-label">Active Channels</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Middle Column: Channel Controls -->
+            <div class="col-lg-4">
+                
+                <!-- Channel Controls Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-sliders-h me-2"></i>Channel Controls
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        
+                        <!-- Channel 1 -->
+                        <div class="channel-control mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <label class="form-label">
+                                    <i class="fas fa-bolt text-warning me-2"></i>Channel 1
+                                </label>
+                                <span class="channel-value badge bg-warning text-dark" id="ch1Value">0</span>
+                            </div>
+                            <input type="range" class="form-range channel-slider" id="ch1" value="0" min="0" max="100">
+                        </div>
+                        
+                        <!-- Channel 2 -->
+                        <div class="channel-control mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <label class="form-label">
+                                    <i class="fas fa-bolt text-info me-2"></i>Channel 2
+                                </label>
+                                <span class="channel-value badge bg-info" id="ch2Value">0</span>
+                            </div>
+                            <input type="range" class="form-range channel-slider" id="ch2" value="0" min="0" max="100">
+                        </div>
+                        
+                        <!-- Channel 3 -->
+                        <div class="channel-control mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <label class="form-label">
+                                    <i class="fas fa-bolt text-success me-2"></i>Channel 3
+                                </label>
+                                <span class="channel-value badge bg-success" id="ch3Value">0</span>
+                            </div>
+                            <input type="range" class="form-range channel-slider" id="ch3" value="0" min="0" max="100">
+                        </div>
+                        
+                        <!-- Channel 4 -->
+                        <div class="channel-control mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <label class="form-label">
+                                    <i class="fas fa-bolt text-danger me-2"></i>Channel 4
+                                </label>
+                                <span class="channel-value badge bg-danger" id="ch4Value">0</span>
+                            </div>
+                            <input type="range" class="form-range channel-slider" id="ch4" value="0" min="0" max="100">
+                        </div>
+                        
+                        <!-- Send All Button -->
+                        <button id="sendAllBtn" class="btn btn-success w-100 mt-2" onclick="sendAllChannels()">
+                            <i class="fas fa-paper-plane me-2"></i>Send All Channels
+                        </button>
+                        
+                    </div>
+                </div>
+                
+                <!-- Device Info -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Device Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="device-info">
+                            <p><strong>Status:</strong> <span id="deviceStatus">Waiting for connection...</span></p>
+                            <p><strong>Last Update:</strong> <span id="lastUpdate">-</span></p>
+                            <p><strong>Connection:</strong> <span id="connectionQuality">-</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Right Column: Logs -->
+            <div class="col-lg-4">
+                
+                <!-- Logs Tabs -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-terminal me-2"></i>System Logs
+                        </h5>
+                    </div>
+                    
+                    <div class="card-body p-0">
+                        <!-- Tabs Navigation -->
+                        <ul class="nav nav-tabs" id="logTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="command-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#command" type="button" role="tab">
+                                    <i class="fas fa-code me-1"></i>Commands
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="response-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#response" type="button" role="tab">
+                                    <i class="fas fa-reply me-1"></i>Responses
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="streaming-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#streaming" type="button" role="tab">
+                                    <i class="fas fa-stream me-1"></i>Streaming
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="device-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#device" type="button" role="tab">
+                                    <i class="fas fa-tablet-alt me-1"></i>Devices
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <!-- Tab Content -->
+                        <div class="tab-content p-3" style="max-height: 400px; overflow-y: auto;">
+                            
+                            <!-- Commands Tab -->
+                            <div class="tab-pane fade show active" id="command" role="tabpanel">
+                                <textarea class="form-control log-textarea" id="commandlog" rows="8" 
+                                          placeholder="Command log will appear here..."></textarea>
+                            </div>
+                            
+                            <!-- Responses Tab -->
+                            <div class="tab-pane fade" id="response" role="tabpanel">
+                                <textarea class="form-control log-textarea" id="responselog" rows="8" 
+                                          placeholder="Response log will appear here..."></textarea>
+                            </div>
+                            
+                            <!-- Streaming Tab -->
+                            <div class="tab-pane fade" id="streaming" role="tabpanel">
+                                <textarea class="form-control log-textarea" id="streaminglog" rows="8" 
+                                          placeholder="Streaming log will appear here..."></textarea>
+                            </div>
+                            
+                            <!-- Devices Tab -->
+                            <div class="tab-pane fade" id="device" role="tabpanel">
+                                <textarea class="form-control log-textarea" id="deviceLog" rows="8" 
+                                          placeholder="Device log will appear here..."></textarea>
+                            </div>
+                            
+                        </div>
+                        
+                        <!-- Log Controls -->
+                        <div class="card-footer bg-light">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="clearLog('commandlog')">
+                                Clear Commands
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="clearAllLogs()">
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
         </div>
+        
+        <!-- Footer -->
+        <footer class="mt-4 py-3 text-center text-muted border-top">
+            <small>
+                NeuroStim Dashboard v1.0 | MQTT Controller Interface | 
+                <i class="fas fa-heart text-danger"></i> Built for Neuroscience Research
+            </small>
+        </footer>
+        
     </div>
-
-
-
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script> 
         let client;
         let reconnectTimeout = 2000;
         let deviceName = ''
         let hostName;
         let port = 9001;
+        let messageCount = 0;
+        let activeChannels = 0;
         let subscribeOptions = {
             qos: 0,  // QoS
             invocationContext: {foo: true},  // Passed to success / failure callback
@@ -115,12 +324,41 @@
             timeout: 10
         };
         
-        
-            
+        document.getElementById('ch1').addEventListener('input', updateChannelValue.bind(null, 'ch1'));
+        document.getElementById('ch2').addEventListener('input', updateChannelValue.bind(null, 'ch2'));
+        document.getElementById('ch3').addEventListener('input', updateChannelValue.bind(null, 'ch3'));
+        document.getElementById('ch4').addEventListener('input', updateChannelValue.bind(null, 'ch4'));
+
+        function updateChannelValue(channelId) {
+        const value = document.getElementById(channelId).value;
+        document.getElementById(channelId + 'Value').textContent = value;
+   
+        // Update active channels count
+        updateActiveChannelsCount();
+    }
+
+        function updateActiveChannelsCount() {
+            let count = 0;
+            for (let i = 1; i <= 4; i++) {
+                if (document.getElementById('ch' + i).value > 0) {
+                    count++;
+                }
+            }
+            document.getElementById('activeChannels').textContent = count + '/4';
+        }
+
         function connectMQTT(){
             hostName = document.getElementById("mqttHost").value
             port = document.getElementById("mqttPort").value
             client = new Paho.MQTT.Client(hostName, Number(port), "", "web" + new Date().getTime());
+
+            const statusIndicator = document.getElementById('statusIndicator');
+            const connectBtn = document.getElementById('connectBtn');
+
+            statusIndicator.className = 'badge bg-warning connecting';
+            statusIndicator.innerHTML = '<i class="fas fa-circle me-1"></i> Connecting...';
+            connectBtn.disabled = true;
+            connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Connecting...';
 
             // set callback handlers
             client.onConnectionLost = onConnectionLost;
@@ -130,10 +368,35 @@
             client.connect({onSuccess: Connected,onFailure: onConnectionLost,keepAliveInterval: 10000,timeout: 300});
         }
 
+        function showAlert(messa,type) {
+            const alertPlaceholder = document.getElementById('alertPlaceholder');
+            const alerta = meudeus;
+        }
+
         // called when the client connects
         function Connected() {
             // Once a connection has been made, make a subscription and send a message.
-            alert("MQTT Connected");
+            const statusIndicator = document.getElementById('statusIndicator');
+            const connectBtn = document.getElementById('connectBtn');
+
+            statusIndicator.className = 'badge bg-success connected';
+            statusIndicator.innerHTML = '<i class="fas fa-circle me-1"></i> Connected';
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = '<i class="fas fa-link me-2"></i>Connect to MQTT';
+
+            function updateDeviceStatus(status) {
+                document.getElementById('deviceStatus').textContent = status;
+            }
+
+            function updateLastUpdateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                document.getElementById('lastUpdate').textContent = timeString;
+            }
+
+            updateDeviceStatus("Connected to MQTT Broker");
+            updateLastUpdateTime();
+
             deviceName = document.getElementById("deviceName").value;
             client.subscribe("newdev");
             client.subscribe("stream/"+deviceName,subscribeOptions);
@@ -192,5 +455,13 @@
         } 
     </script>
 
+   
+
     </body>
 </html>
+
+<div class="alert alert-success" role="alert">
+  A simple success alert—check it out!
+
+  <div id="liveAlertPlaceholder"></div>
+<button type="button" class="btn btn-primary" id="liveAlertBtn">Show live alert</button>
