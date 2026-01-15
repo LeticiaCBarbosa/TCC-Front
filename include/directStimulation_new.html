@@ -76,7 +76,7 @@
                             <i class="fas fa-link me-2"></i>Connect to MQTT
                         </button>
 
-                        <div id="liveAlertPlaceholder"></div>
+                        <div id="divPraInseriroAlert"></div>
                     </div>
                 </div>
                 
@@ -368,10 +368,19 @@
             client.connect({onSuccess: Connected,onFailure: onConnectionLost,keepAliveInterval: 10000,timeout: 300});
         }
 
-        function showAlert(messa,type) {
-            const alertPlaceholder = document.getElementById('alertPlaceholder');
-            const alerta = meudeus;
-        }
+        const idDivAlert = document.getElementById("divPraInseriroAlert")
+
+        const appendAlert = (message, type) => {
+            const alert = document.createElement('div')
+            alert.innerHTML = [
+            `<div class="alert alert-${type} alert-dismissible" role="alert">`,
+            `<div>${message}</div>`,
+            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+            '</div>'
+            ].join('')
+
+        divPraInseriroAlerte.append(alert)
+    }
 
         // called when the client connects
         function Connected() {
@@ -383,6 +392,8 @@
             statusIndicator.innerHTML = '<i class="fas fa-circle me-1"></i> Connected';
             connectBtn.disabled = false;
             connectBtn.innerHTML = '<i class="fas fa-link me-2"></i>Connect to MQTT';
+
+            appendAlert('conectou irmao')
 
             function updateDeviceStatus(status) {
                 document.getElementById('deviceStatus').textContent = status;
@@ -459,9 +470,3 @@
 
     </body>
 </html>
-
-<div class="alert alert-success" role="alert">
-  A simple success alert—check it out!
-
-  <div id="liveAlertPlaceholder"></div>
-<button type="button" class="btn btn-primary" id="liveAlertBtn">Show live alert</button>
