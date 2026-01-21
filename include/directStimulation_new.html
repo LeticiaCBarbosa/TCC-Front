@@ -120,7 +120,7 @@
                                 <div class="stat-label">Total Messages</div>
                             </div>
                             <div class="col-6 mb-3">
-                                <div class="stat-value" id="activeChannels">0/4</div>
+                                <div class="stat-value" id="activeChannels">0/1</div>
                                 <div class="stat-label">Active Channels</div>
                             </div>
                         </div>
@@ -150,41 +150,7 @@
                                 <span class="channel-value badge bg-warning text-dark" id="ch1Value">0</span>
                             </div>
                             <input type="range" class="form-range channel-slider" id="ch1" value="0" min="0" max="100">
-                        </div>
-                        
-                        <!-- Channel 2 -->
-                        <div class="channel-control mb-4">
-                            <div class="d-flex justify-content-between mb-2">
-                                <label class="form-label">
-                                    <i class="fas fa-bolt text-info me-2"></i>Channel 2
-                                </label>
-                                <span class="channel-value badge bg-info" id="ch2Value">0</span>
-                            </div>
-                            <input type="range" class="form-range channel-slider" id="ch2" value="0" min="0" max="100">
-                        </div>
-                        
-                        <!-- Channel 3 -->
-                        <div class="channel-control mb-4">
-                            <div class="d-flex justify-content-between mb-2">
-                                <label class="form-label">
-                                    <i class="fas fa-bolt text-success me-2"></i>Channel 3
-                                </label>
-                                <span class="channel-value badge bg-success" id="ch3Value">0</span>
-                            </div>
-                            <input type="range" class="form-range channel-slider" id="ch3" value="0" min="0" max="100">
-                        </div>
-                        
-                        <!-- Channel 4 -->
-                        <div class="channel-control mb-4">
-                            <div class="d-flex justify-content-between mb-2">
-                                <label class="form-label">
-                                    <i class="fas fa-bolt text-danger me-2"></i>Channel 4
-                                </label>
-                                <span class="channel-value badge bg-danger" id="ch4Value">0</span>
-                            </div>
-                            <input type="range" class="form-range channel-slider" id="ch4" value="0" min="0" max="100">
-                        </div>
-                        
+                        </div>                        
                     </div>
                 </div>
                 
@@ -289,6 +255,7 @@
         let port = 9001;
         let messageCount = 0;
         let activeChannels = 0;
+        letisConnected = false;
         let subscribeOptions = {
             qos: 0,  // QoS
             invocationContext: {foo: true},  // Passed to success / failure callback
@@ -297,9 +264,6 @@
         };
         
         document.getElementById('ch1').addEventListener('input', updateChannelValue.bind(null, 'ch1'));
-        document.getElementById('ch2').addEventListener('input', updateChannelValue.bind(null, 'ch2'));
-        document.getElementById('ch3').addEventListener('input', updateChannelValue.bind(null, 'ch3'));
-        document.getElementById('ch4').addEventListener('input', updateChannelValue.bind(null, 'ch4'));
 
         function updateChannelValue(channelId) {
         const value = document.getElementById(channelId).value;
@@ -311,12 +275,12 @@
 
         function updateActiveChannelsCount() {
             let count = 0;
-            for (let i = 1; i <= 4; i++) {
+            for (let i = 1; i <= 1; i++) {
                 if (document.getElementById('ch' + i).value > 0) {
                     count++;
                 }
             }
-            document.getElementById('activeChannels').textContent = count + '/4';
+            document.getElementById('activeChannels').textContent = count + '/1';
         }
 
         function connectMQTT(){
@@ -338,6 +302,7 @@
             
             // connect the client
             client.connect({onSuccess: Connected,onFailure: onConnectionLost,keepAliveInterval: 10000,timeout: 300});
+            
         }
 
         const idDivAlert = document.getElementById("divPraInseriroAlert")
@@ -387,6 +352,7 @@
             // Add connection success log
             addToLog('commandlog', `[${getCurrentTime()}] Connected to ${hostName} ${port}`);
 
+            isConnected = true;
         }
 
         function sendInitialCommand() {
@@ -396,7 +362,20 @@
             
             addToLog('commandlog', `[${getCurrentTime()}] Sent initial configuration command`);
                 } 
-
+        
+        function updateLogTimes() {
+            // This function runs every 5 seconds to update timestamps and connection quality
+            setInterval(() => {
+                // Update connection quality indicator
+                if (isConnected) {
+                    document.getElementById('connectionQuality').textContent = 'Good';
+                    document.getElementById('connectionQuality').className = 'text-success';
+                } else {
+                    document.getElementById('connectionQuality').textContent = 'Disconnected';
+                    document.getElementById('connectionQuality').className = 'text-danger';
+                }
+            }, 5000);
+        }
 
         function subscribeToTopics() {
         deviceName = document.getElementById("deviceName").value;
@@ -432,12 +411,16 @@
             if (responseObject.errorCode !== 0) {
                 console.log("onConnectionLost:"+responseObject.errorMessage);
             }
+            isConnected = false;
         }
 
         // called when a message arrives
         function onMessageArrived(message) {
             console.log("onMessageArrived:"+message.payloadString);
     
+            messageCount++;
+            document.getElementById('totalMessages').textContent = messageCount;
+
             if(message.destinationName == "cmd/"+deviceName){
              addToLog('commandlog', message.payloadString);
             } else if(message.destinationName == "status/"+deviceName){
@@ -446,26 +429,17 @@
     }
 
         ch1 = document.getElementById("ch1");
-        ch2 = document.getElementById("ch2");
-        ch3 = document.getElementById("ch3");
-        ch4 = document.getElementById("ch4");
         ch1.addEventListener("change", sendChannelCangedCommand);
-        ch2.addEventListener("change", sendChannelCangedCommand);
-        ch3.addEventListener("change", sendChannelCangedCommand);
-        ch4.addEventListener("change", sendChannelCangedCommand);
         
         function sendChannelCangedCommand() {
             deviceName = document.getElementById("deviceName").value;
             ton = document.getElementById("ton").value;
             period = document.getElementById("period").value;
             ch1 = document.getElementById("ch1").value;
-            ch2 = document.getElementById("ch2").value;
-            ch3 = document.getElementById("ch3").value;
-            ch4 = document.getElementById("ch4").value;
             const payload = {
             op: 2,
             parameters: {
-                m: `${ch1},${ch2},${ch3},${ch4}`,
+                m: `${ch1}`,
                 t: ton,
                 p: period
             }
@@ -488,6 +462,10 @@
         function clearAllLogs() {
             ['commandlog', 'responselog'].forEach(clearLog);
         }
+
+        window.addEventListener('load', function() {
+            updateLogTimes();
+        });
 
     </script>
 

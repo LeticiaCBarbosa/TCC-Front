@@ -12,7 +12,7 @@ volatile bool openLoop_flag = false, sensor_flag = false;
 #ifdef ESP32DEV
 #ifndef microstim_h
   uint8_t modPin[8]    = {27,19,12,18,23,14,26,25},//ca andré
-          levelPin[4]  = {13,4,2,33};
+          levelPin[4]  = {2,4,13,33};
 #else
 uint8_t modPin[8]    = {4,12,0,0,0,0,0,0},//ca andré
         levelPin[4]  = {2,0,0,0};
