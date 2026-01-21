@@ -74,7 +74,7 @@
                         
                         <button id="connectBtn" class="btn btn-primary w-100" onclick="connectMQTT()">
                             <i class="fas fa-link me-2"></i>Connect to MQTT
-                        </button>
+                        </button> <br> <br>
 
                         <div id="divPraInseriroAlert"></div>
                     </div>
@@ -185,11 +185,6 @@
                             <input type="range" class="form-range channel-slider" id="ch4" value="0" min="0" max="100">
                         </div>
                         
-                        <!-- Send All Button -->
-                        <button id="sendAllBtn" class="btn btn-success w-100 mt-2" onclick="sendAllChannels()">
-                            <i class="fas fa-paper-plane me-2"></i>Send All Channels
-                        </button>
-                        
                     </div>
                 </div>
                 
@@ -238,16 +233,8 @@
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="streaming-tab" data-bs-toggle="tab" 
-                                        data-bs-target="#streaming" type="button" role="tab">
-                                    <i class="fas fa-stream me-1"></i>Streaming
-                                </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="device-tab" data-bs-toggle="tab" 
-                                        data-bs-target="#device" type="button" role="tab">
-                                    <i class="fas fa-tablet-alt me-1"></i>Devices
-                                </button>
                             </li>
                         </ul>
                         
@@ -266,25 +253,10 @@
                                           placeholder="Response log will appear here..."></textarea>
                             </div>
                             
-                            <!-- Streaming Tab -->
-                            <div class="tab-pane fade" id="streaming" role="tabpanel">
-                                <textarea class="form-control log-textarea" id="streaminglog" rows="8" 
-                                          placeholder="Streaming log will appear here..."></textarea>
-                            </div>
-                            
-                            <!-- Devices Tab -->
-                            <div class="tab-pane fade" id="device" role="tabpanel">
-                                <textarea class="form-control log-textarea" id="deviceLog" rows="8" 
-                                          placeholder="Device log will appear here..."></textarea>
-                            </div>
-                            
                         </div>
                         
                         <!-- Log Controls -->
                         <div class="card-footer bg-light">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="clearLog('commandlog')">
-                                Clear Commands
-                            </button>
                             <button class="btn btn-sm btn-outline-secondary" onclick="clearAllLogs()">
                                 Clear All
                             </button>
@@ -379,7 +351,7 @@
             '</div>'
             ].join('')
 
-        divPraInseriroAlerte.append(alert)
+        idDivAlert.append(alert)
     }
 
         // called when the client connects
@@ -393,7 +365,7 @@
             connectBtn.disabled = false;
             connectBtn.innerHTML = '<i class="fas fa-link me-2"></i>Connect to MQTT';
 
-            appendAlert('conectou irmao')
+            appendAlert('Mqtt conectado.', 'success')
 
             function updateDeviceStatus(status) {
                 document.getElementById('deviceStatus').textContent = status;
@@ -405,18 +377,55 @@
                 document.getElementById('lastUpdate').textContent = timeString;
             }
 
+            subscribeToTopics();
+
             updateDeviceStatus("Connected to MQTT Broker");
             updateLastUpdateTime();
 
-            deviceName = document.getElementById("deviceName").value;
-            client.subscribe("newdev");
-            client.subscribe("stream/"+deviceName,subscribeOptions);
-            client.subscribe("status/"+deviceName,subscribeOptions);
-            client.subscribe("cmd/"+deviceName,subscribeOptions);
-            message = new Paho.MQTT.Message('{"op": 0}');
-            message.destinationName = "cmd/"+deviceName;
-            client.send(message);
+            sendInitialCommand();
+   
+            // Add connection success log
+            addToLog('commandlog', `[${getCurrentTime()}] Connected to ${hostName} ${port}`);
+
         }
+
+        function sendInitialCommand() {
+            const message = new Paho.MQTT.Message('{"op": 0}');
+            message.destinationName = `cmd/${deviceName}`;
+            client.send(message);
+            
+            addToLog('commandlog', `[${getCurrentTime()}] Sent initial configuration command`);
+                } 
+
+
+        function subscribeToTopics() {
+        deviceName = document.getElementById("deviceName").value;
+    
+        const topics = [
+            `stream/${deviceName}`,
+            `status/${deviceName}`,
+            `cmd/${deviceName}`
+        ];
+    
+        topics.forEach(topic => {
+            client.subscribe(topic, subscribeOptions);
+            addToLog('commandlog', `[${getCurrentTime()}] Subscribed to: ${topic}`);
+     });
+}
+
+        function addToLog(logId, message) {
+            const log = document.getElementById(logId);
+            if (log) {
+                log.value += message + '\n';
+        // Auto-scroll to bottom
+        log.scrollTop = log.scrollHeight;
+            }
+        }
+
+        function getCurrentTime() {
+        const now = new Date();
+        return now.toTimeString().split(' ')[0];
+    }
 
         // called when the client loses its connection
         function onConnectionLost(responseObject) {
@@ -428,20 +437,13 @@
         // called when a message arrives
         function onMessageArrived(message) {
             console.log("onMessageArrived:"+message.payloadString);
+    
             if(message.destinationName == "cmd/"+deviceName){
-                let log = document.getElementById("commandlog");
-                log.value += "\n"+message.payloadString
-            } else if(message.destinationName == "stream/"+deviceName){
-                let log = document.getElementById("streaminglog");
-                log.value += "\n"+message.payloadString
-            }else if(message.destinationName == "status/"+deviceName){
-                let log = document.getElementById("responselog");
-                log.value += "\n"+message.payloadString
-            }else if(message.destinationName == "newdev"){
-                let log = document.getElementById("deviceLog");
-                log.value += "\n"+message.payloadString
-            }
+             addToLog('commandlog', message.payloadString);
+            } else if(message.destinationName == "status/"+deviceName){
+             addToLog('responselog', message.payloadString);
         }
+    }
 
         ch1 = document.getElementById("ch1");
         ch2 = document.getElementById("ch2");
@@ -460,13 +462,34 @@
             ch2 = document.getElementById("ch2").value;
             ch3 = document.getElementById("ch3").value;
             ch4 = document.getElementById("ch4").value;
-            message = new Paho.MQTT.Message('{"op":2,parameters:{"m":"'+ch1+','+ch2+','+ch3+','+ch4+'","t":"'+ton+'","p":"'+period+'"}}');
+            const payload = {
+            op: 2,
+            parameters: {
+                m: `${ch1},${ch2},${ch3},${ch4}`,
+                t: ton,
+                p: period
+            }
+        };
+        
+            message = new Paho.MQTT.Message(JSON.stringify(payload));
             message.destinationName = "cmd/"+deviceName;
             client.send(message);
-        } 
-    </script>
 
-   
+            addToLog('commandlog', `[${getCurrentTime()}] Sent channel values: ${payload.parameters.m}`);
+        }
+
+        function clearLog(logId) {
+            const log = document.getElementById(logId);
+            if (log) {
+            log.value = '';
+        }
+    }
+
+        function clearAllLogs() {
+            ['commandlog', 'responselog'].forEach(clearLog);
+        }
+
+    </script>
 
     </body>
 </html>
