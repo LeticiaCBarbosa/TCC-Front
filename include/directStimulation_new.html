@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NeuroStim Dashboard</title>
+    <title>Dashboard Neuroestim</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
@@ -14,83 +14,82 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- MQTT Client Library -->
+    <!-- Biblioteca Cliente MQTT -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
     
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Main Container -->
+    <!-- Contêiner Principal -->
     <div class="container-fluid px-4">
         
-        <!-- Header -->
+        <!-- Cabeçalho -->
         <header class="d-flex justify-content-between align-items-center py-3 mb-4 border-bottom">
             <div class="d-flex align-items-center">
                 <i class="fas fa-brain fa-2x text-primary me-3"></i>
-                <h1 class="h3 mb-0">NeuroStim Controller</h1>
+                <h1 class="h3 mb-0">Neuroestim</h1>
             </div>
             <div class="connection-status">
                 <span id="statusIndicator" class="badge bg-danger">
-                    <i class="fas fa-circle me-1"></i> Disconnected
+                    <i class="fas fa-circle me-1"></i> Desconectado
                 </span>
             </div>
         </header>
         
-        <!-- Main Content -->
+        <!-- Conteúdo Principal -->
         <div class="row">
             
-            <!-- Left Column: Controls -->
+            <!-- Coluna Esquerda: Controles -->
             <div class="col-lg-4">
                 
-                <!-- Connection Card -->
+                <!-- Cartão de Conexão -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
-                            <i class="fas fa-plug me-2"></i>MQTT Connection
+                            <i class="fas fa-plug me-2"></i>Conexão MQTT
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="mqttHost" class="form-label">
-                                <i class="fas fa-server me-1"></i>Server Address
+                                <i class="fas fa-server me-1"></i>Endereço do Servidor
                             </label>
                             <input type="text" class="form-control" id="mqttHost" value="127.0.0.1">
                         </div>
                         
                         <div class="mb-3">
                             <label for="mqttPort" class="form-label">
-                                <i class="fas fa-network-wired me-1"></i>Port
+                                <i class="fas fa-network-wired me-1"></i>Porta
                             </label>
                             <input type="number" class="form-control" id="mqttPort" value="1887">
                         </div>
                         
                         <div class="mb-3">
                             <label for="deviceName" class="form-label">
-                                <i class="fas fa-microchip me-1"></i>Device Name
+                                <i class="fas fa-microchip me-1"></i>Nome do Despositivo
                             </label>
                             <input type="text" class="form-control" id="deviceName" value="110017869965628">
                         </div>
                         
                         <button id="connectBtn" class="btn btn-primary w-100" onclick="connectMQTT()">
-                            <i class="fas fa-link me-2"></i>Connect to MQTT
+                            <i class="fas fa-link me-2"></i>Conectar ao MQTT
                         </button> <br> <br>
 
                         <div id="divPraInseriroAlert"></div>
                     </div>
                 </div>
                 
-                <!-- Pulse Configuration Card -->
+                <!-- Cartão de Configuração de Pulso -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-info text-white">
                         <h5 class="mb-0">
-                            <i class="fas fa-wave-square me-2"></i>Pulse Configuration
+                            <i class="fas fa-wave-square me-2"></i>Configuração de Pulso
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="ton" class="form-label">
-                                Pulse Width (µs) <span class="badge bg-light text-dark" id="tonValue">200</span>
+                                Largura do Pulso (µs) <span class="badge bg-light text-dark" id="tonValue">200</span>
                             </label>
                             <input type="range" class="form-range" id="ton" min="50" max="1000" value="200" 
                                    oninput="document.getElementById('tonValue').textContent = this.value">
@@ -98,7 +97,7 @@
                         
                         <div class="mb-3">
                             <label for="period" class="form-label">
-                                Period (ms) <span class="badge bg-light text-dark" id="periodValue">20000</span>
+                                Período (ms) <span class="badge bg-light text-dark" id="periodValue">20000</span>
                             </label>
                             <input type="range" class="form-range" id="period" min="1000" max="60000" value="20000" 
                                    oninput="document.getElementById('periodValue').textContent = this.value">
@@ -106,22 +105,22 @@
                     </div>
                 </div>
                 
-                <!-- Quick Stats -->
+                <!-- Estatísticas Rápidas -->
                 <div class="card shadow-sm">
                     <div class="card-header bg-secondary text-white">
                         <h5 class="mb-0">
-                            <i class="fas fa-chart-bar me-2"></i>Quick Stats
+                            <i class="fas fa-chart-bar me-2"></i>Estatísticas Rápidas
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="row text-center">
                             <div class="col-6 mb-3">
                                 <div class="stat-value" id="totalMessages">0</div>
-                                <div class="stat-label">Total Messages</div>
+                                <div class="stat-label">Total de Mensagens</div>
                             </div>
                             <div class="col-6 mb-3">
                                 <div class="stat-value" id="activeChannels">0/1</div>
-                                <div class="stat-label">Active Channels</div>
+                                <div class="stat-label">Canais Ativos</div>
                             </div>
                         </div>
                     </div>
@@ -129,23 +128,23 @@
                 
             </div>
             
-            <!-- Middle Column: Channel Controls -->
+            <!-- Coluna do Meio: Controles de Canal -->
             <div class="col-lg-4">
                 
-                <!-- Channel Controls Card -->
+                <!-- Cartão de Controles de Canal -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-success text-white">
                         <h5 class="mb-0">
-                            <i class="fas fa-sliders-h me-2"></i>Channel Controls
+                            <i class="fas fa-sliders-h me-2"></i>Controles de Canal
                         </h5>
                     </div>
                     <div class="card-body">
                         
-                        <!-- Channel 1 -->
+                        <!-- Canal 1 -->
                         <div class="channel-control mb-4">
                             <div class="d-flex justify-content-between mb-2">
                                 <label class="form-label">
-                                    <i class="fas fa-bolt text-warning me-2"></i>Channel 1
+                                    <i class="fas fa-bolt text-warning me-2"></i>Canal 1
                                 </label>
                                 <span class="channel-value badge bg-warning text-dark" id="ch1Value">0</span>
                             </div>
@@ -154,48 +153,48 @@
                     </div>
                 </div>
                 
-                <!-- Device Info -->
+                <!-- Informações do Dispositivo -->
                 <div class="card shadow-sm">
                     <div class="card-header bg-dark text-white">
                         <h5 class="mb-0">
-                            <i class="fas fa-info-circle me-2"></i>Device Information
+                            <i class="fas fa-info-circle me-2"></i>Informações do Dispositivo
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="device-info">
-                            <p><strong>Status:</strong> <span id="deviceStatus">Waiting for connection...</span></p>
-                            <p><strong>Last Update:</strong> <span id="lastUpdate">-</span></p>
-                            <p><strong>Connection:</strong> <span id="connectionQuality">-</span></p>
+                            <p><strong>Status:</strong> <span id="deviceStatus">Aguardando conexão...</span></p>
+                            <p><strong>Última Atualização:</strong> <span id="lastUpdate">-</span></p>
+                            <p><strong>Conexão:</strong> <span id="connectionQuality">-</span></p>
                         </div>
                     </div>
                 </div>
                 
             </div>
             
-            <!-- Right Column: Logs -->
+            <!-- Coluna Direita: Logs -->
             <div class="col-lg-4">
                 
-                <!-- Logs Tabs -->
+                <!-- Abas de Logs -->
                 <div class="card shadow-sm">
                     <div class="card-header bg-dark text-white">
                         <h5 class="mb-0">
-                            <i class="fas fa-terminal me-2"></i>System Logs
+                            <i class="fas fa-terminal me-2"></i>Logs do Sistema
                         </h5>
                     </div>
                     
                     <div class="card-body p-0">
-                        <!-- Tabs Navigation -->
+                        <!-- Navegação das Abas -->
                         <ul class="nav nav-tabs" id="logTabs" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="command-tab" data-bs-toggle="tab" 
                                         data-bs-target="#command" type="button" role="tab">
-                                    <i class="fas fa-code me-1"></i>Commands
+                                    <i class="fas fa-code me-1"></i>Comandos
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="response-tab" data-bs-toggle="tab" 
                                         data-bs-target="#response" type="button" role="tab">
-                                    <i class="fas fa-reply me-1"></i>Responses
+                                    <i class="fas fa-reply me-1"></i>Respostas
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
@@ -204,16 +203,16 @@
                             </li>
                         </ul>
                         
-                        <!-- Tab Content -->
+                        <!-- Conteúdo das Abas -->
                         <div class="tab-content p-3" style="max-height: 400px; overflow-y: auto;">
                             
-                            <!-- Commands Tab -->
+                            <!-- Aba de Comandos -->
                             <div class="tab-pane fade show active" id="command" role="tabpanel">
                                 <textarea class="form-control log-textarea" id="commandlog" rows="8" 
                                           placeholder="Command log will appear here..."></textarea>
                             </div>
                             
-                            <!-- Responses Tab -->
+                            <!-- Aba de Respostas -->
                             <div class="tab-pane fade" id="response" role="tabpanel">
                                 <textarea class="form-control log-textarea" id="responselog" rows="8" 
                                           placeholder="Response log will appear here..."></textarea>
@@ -221,10 +220,10 @@
                             
                         </div>
                         
-                        <!-- Log Controls -->
+                        <!-- Controles de Logs -->
                         <div class="card-footer bg-light">
                             <button class="btn btn-sm btn-outline-secondary" onclick="clearAllLogs()">
-                                Clear All
+                                Limpar Tudo
                             </button>
                         </div>
                     </div>
@@ -234,11 +233,10 @@
             
         </div>
         
-        <!-- Footer -->
+        <!-- Rodapé -->
         <footer class="mt-4 py-3 text-center text-muted border-top">
             <small>
-                NeuroStim Dashboard v1.0 | MQTT Controller Interface | 
-                <i class="fas fa-heart text-danger"></i> Built for Neuroscience Research
+                NeuroStim Dashboard v1.0 | Interface de Controle MQTT | Construído para Pesquisa em Neurociência
             </small>
         </footer>
         
@@ -255,10 +253,10 @@
         let port = 9001;
         let messageCount = 0;
         let activeChannels = 0;
-        letisConnected = false;
+        let isConnected = false;
         let subscribeOptions = {
             qos: 0,  // QoS
-            invocationContext: {foo: true},  // Passed to success / failure callback
+            invocationContext: {foo: true},  // Passou para o callback de sucesso / falha
             onFailure: onConnectionLost,
             timeout: 10
         };
@@ -269,7 +267,7 @@
         const value = document.getElementById(channelId).value;
         document.getElementById(channelId + 'Value').textContent = value;
    
-        // Update active channels count
+        // Atualizar contagem de canais ativos
         updateActiveChannelsCount();
     }
 
@@ -296,11 +294,11 @@
             connectBtn.disabled = true;
             connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Connecting...';
 
-            // set callback handlers
+            // defina os manipuladores de callback
             client.onConnectionLost = onConnectionLost;
             client.onMessageArrived = onMessageArrived;
             
-            // connect the client
+            // conectar o cliente
             client.connect({onSuccess: Connected,onFailure: onConnectionLost,keepAliveInterval: 10000,timeout: 300});
             
         }
@@ -326,9 +324,9 @@
             const connectBtn = document.getElementById('connectBtn');
 
             statusIndicator.className = 'badge bg-success connected';
-            statusIndicator.innerHTML = '<i class="fas fa-circle me-1"></i> Connected';
+            statusIndicator.innerHTML = '<i class="fas fa-circle me-1"></i> Conectado';
             connectBtn.disabled = false;
-            connectBtn.innerHTML = '<i class="fas fa-link me-2"></i>Connect to MQTT';
+            connectBtn.innerHTML = '<i class="fas fa-link me-2"></i>Conectar ao MQTT';
 
             appendAlert('Mqtt conectado.', 'success')
 
@@ -344,13 +342,13 @@
 
             subscribeToTopics();
 
-            updateDeviceStatus("Connected to MQTT Broker");
+            updateDeviceStatus("Conectado ao Broker MQTT");
             updateLastUpdateTime();
 
             sendInitialCommand();
    
             // Add connection success log
-            addToLog('commandlog', `[${getCurrentTime()}] Connected to ${hostName} ${port}`);
+            addToLog('commandlog', `[${getCurrentTime()}] Conectado a ${hostName} ${port}`);
 
             isConnected = true;
         }
@@ -360,18 +358,18 @@
             message.destinationName = `cmd/${deviceName}`;
             client.send(message);
             
-            addToLog('commandlog', `[${getCurrentTime()}] Sent initial configuration command`);
+            addToLog('commandlog', `[${getCurrentTime()}] Enviado comando de configuração inicial`);
                 } 
         
         function updateLogTimes() {
-            // This function runs every 5 seconds to update timestamps and connection quality
+            // Esta função é executada a cada 5 segundos para atualizar os carimbos de data/hora e a qualidade da conexão
             setInterval(() => {
-                // Update connection quality indicator
+                // Atualizar indicador de qualidade da conexão
                 if (isConnected) {
-                    document.getElementById('connectionQuality').textContent = 'Good';
+                    document.getElementById('connectionQuality').textContent = 'Bom';
                     document.getElementById('connectionQuality').className = 'text-success';
                 } else {
-                    document.getElementById('connectionQuality').textContent = 'Disconnected';
+                    document.getElementById('connectionQuality').textContent = 'Desconectado';
                     document.getElementById('connectionQuality').className = 'text-danger';
                 }
             }, 5000);
@@ -396,7 +394,7 @@
             const log = document.getElementById(logId);
             if (log) {
                 log.value += message + '\n';
-        // Auto-scroll to bottom
+        // Auto-scroll para a última linha
         log.scrollTop = log.scrollHeight;
             }
         }
@@ -406,7 +404,7 @@
         return now.toTimeString().split(' ')[0];
     }
 
-        // called when the client loses its connection
+        // chamado quando o cliente perde a conexão
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
                 console.log("onConnectionLost:"+responseObject.errorMessage);
@@ -414,7 +412,7 @@
             isConnected = false;
         }
 
-        // called when a message arrives
+        // chamado quando uma mensagem chega
         function onMessageArrived(message) {
             console.log("onMessageArrived:"+message.payloadString);
     
@@ -430,6 +428,8 @@
 
         ch1 = document.getElementById("ch1");
         ch1.addEventListener("change", sendChannelCangedCommand);
+        document.getElementById('ton').addEventListener('input', sendChannelCangedCommand);
+        document.getElementById('period').addEventListener('input', sendChannelCangedCommand);
         
         function sendChannelCangedCommand() {
             deviceName = document.getElementById("deviceName").value;
